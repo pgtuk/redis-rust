@@ -38,6 +38,10 @@ struct Entry {
 }
 
 impl Db {
+
+    // TODO implement
+    // new() should build DB from *.rdb
+    // add method which will save DB to file
     pub fn new() -> Db {
         let shared = Arc::new(Shared {
             state: Mutex::new(State {
@@ -149,3 +153,4 @@ async fn remove_expired_tasks(shared: Arc<Shared>) {
 
 #[cfg(test)]
 mod tests;
+mod rdb;
