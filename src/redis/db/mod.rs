@@ -9,32 +9,10 @@ use tokio::time::{Duration, Instant, sleep_until};
 
 const EMPTY_RDB: &str = "UkVESVMwMDEx+glyZWRpcy12ZXIFNy4yLjD6CnJlZGlzLWJpdHPAQPoFY3RpbWXCbQi8ZfoIdXNlZC1tZW3CsMQQAPoIYW9mLWJhc2XAAP/wbjv+wP9aog==";
 
+
 #[derive(Debug, Clone)]
 pub struct Db {
     shared: Arc<Shared>,
-}
-
-#[derive(Debug)]
-struct Shared {
-    state: Mutex<State>,
-
-    notify_expire: Notify,
-}
-
-#[derive(Debug)]
-struct State {
-    entries: HashMap<String, Entry>,
-
-    shutdown: bool,
-    // track TTLs
-    expirations: BTreeSet<(Instant, String)>,
-}
-
-#[derive(Debug)]
-struct Entry {
-    data: Bytes,
-
-    expires_at: Option<Instant>,
 }
 
 impl Db {
@@ -110,6 +88,14 @@ impl Drop for Db {
     }
 }
 
+
+#[derive(Debug)]
+struct Shared {
+    state: Mutex<State>,
+
+    notify_expire: Notify,
+}
+
 impl Shared {
     fn remove_expired(&self) -> Option<Instant> {
         let mut state = self.state.lock().unwrap();
@@ -137,6 +123,25 @@ impl Shared {
         !self.state.lock().unwrap().shutdown
     }
 }
+
+
+#[derive(Debug)]
+struct State {
+    entries: HashMap<String, Entry>,
+
+    shutdown: bool,
+    // track TTLs
+    expirations: BTreeSet<(Instant, String)>,
+}
+
+
+#[derive(Debug)]
+struct Entry {
+    data: Bytes,
+
+    expires_at: Option<Instant>,
+}
+
 
 async fn remove_expired_tasks(shared: Arc<Shared>) {
     while shared.is_up() {
